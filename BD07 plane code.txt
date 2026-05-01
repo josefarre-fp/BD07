@@ -1,0 +1,81 @@
+ex1
+
+use zoo
+
+ex2
+
+db.createCollection("animals")
+
+ex3
+
+db                    
+show dbs              
+show collections
+
+ex4
+
+mongoimport --db zoo --collection animals --file animals.json --jsonArray
+
+ex5
+
+db.animals.find({ habitat: "Rainforest", caretakers: { $elemMatch: { nameCaretaker: "Emily Brown" } } })
+
+ex6
+
+db.animals.find( {}, { _id: 0, name: 1, species: 1, habitat: 1 }).sort({ species: 1 })
+
+ex7
+
+db.animals.find( { species: "Tiger" }, { _id: 0, name: 1, age: 1 } ).sort({ age: -1 })
+
+ex8
+
+db.animals.insertOne({  name: "Leo", age: 7,  gender: "Male",  species: "Lion",  habitat: "Savanna", birthplace: "Masai Mara, Kenya",  parents: [ { name: "Unknown", gender: "Male" }, { name:"Unknown", gender: "Female" } ], caretakers: [{ id: 501, name: "Jake Adams" }] })
+
+ex9
+db.animals.updateOne( { name: "Leo", species: "Lion" },  { $set: { age: 8 } })
+
+ex10
+
+db.animals.updateMany( {}, { $rename: { "habitat": "environment" } })
+
+ex11
+
+db.animals.aggregate([ { $match: { age: { $lt: 10 } } }, { $sort: { name: 1 } }])
+
+ex12
+
+db.animals.aggregate([ { $group: { _id: "$species", totalAnimals: { $sum: 1 }  }  }, { $sort: { _id: 1 } }])
+
+ex13
+
+db.animals.aggregate([ { $unwind: "$caretakers" }, { $group: { _id: "$caretakers.idCaretaker", name: { $first: "$caretakers.nameCaretaker" }, animals: { $addToSet: "$name" } } }, { $sort: { _id: 1 } }, { $out: "Caretakers" }])
+
+ex14
+
+db.animals.find().sort({ age: -1 }).limit(3)
+
+ex15
+
+db.animals.find().skip(5).limit(7)
+
+ex16
+
+db.animals.aggregate([
+  { $unwind: "$caretakers" },
+  {
+    $group: {
+      _id: "$environment",
+      totalAnimals: { $sum: 1 },
+      species: { $addToSet: "$species" },
+      caretakers: { $addToSet: "$caretakers.nameCaretaker" }
+    }
+  },
+  {$project: { _id: 0, environment: "$_id", totalAnimals: 1,
+      species: { $sortArray: { input: "$species", sortBy: 1 } },
+      caretakers: 1
+    }
+  },
+  { $out: "Habitats" }
+])
+
